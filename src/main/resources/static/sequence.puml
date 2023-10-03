@@ -1,0 +1,45 @@
+@startuml
+actor User
+participant UserController
+participant UserService
+participant UserRepository
+participant JwtService
+database Database
+
+User -> UserController: POST /users (CreateUserDTO)
+
+activate UserController
+UserController -> UserService: create(CreateUserDTO)
+activate UserService
+
+UserService -> UserRepository: validateUniqueEmail(email)
+activate UserRepository
+UserRepository -> Database: emailExists(email)
+activate Database
+Database --> UserRepository: Boolean exists
+deactivate Database
+UserRepository --> UserService:
+deactivate UserRepository
+
+UserService -> JwtService: generateToken(email)
+activate JwtService
+JwtService --> UserService: String token
+deactivate JwtService
+
+UserService -> UserRepository: save(user)
+activate UserRepository
+UserRepository -> Database: Save user
+activate Database
+Database --> UserRepository: User savedUser
+deactivate Database
+
+UserRepository --> UserService: User savedUser
+deactivate UserRepository
+
+UserService --> UserController: UserDTO
+deactivate UserService
+
+UserController --> User: UserDTO
+deactivate UserController
+
+@enduml
